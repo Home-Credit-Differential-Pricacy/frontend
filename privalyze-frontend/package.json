@@ -8,13 +8,17 @@
     "chart.js": "^4.4.7",
     "cra-template": "1.2.0",
     "daisyui": "^4.12.23",
+    "i18next": "^24.2.0",
     "postcss": "^8.4.49",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
+    "react-google-recaptcha": "^3.1.0",
+    "react-i18next": "^15.4.0",
     "react-router-dom": "^7.1.1",
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
     "web-vitals": "^4.2.4"
   },
   "scripts": {
