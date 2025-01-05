@@ -1,0 +1,10 @@
+# Node.js modülleri
+node_modules/
+
+# Çıktı dosyaları
+build/
+dist/
+
+# Ortam dosyaları
+.env
+.env.local
