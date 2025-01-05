@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import PasswordStrength from "./PasswordStrength";
 
 const SignUp = ({ setIsAuthenticated }) => {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -13,6 +18,7 @@ const SignUp = ({ setIsAuthenticated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       await axios.post("http://localhost:5000/signup", formData);
       alert("Account created successfully!");
@@ -68,6 +74,7 @@ const SignUp = ({ setIsAuthenticated }) => {
               placeholder="Create a password"
               className="input input-bordered w-full"
             />
+            <PasswordStrength password={formData.password} />
           </div>
           <button
             type="submit"

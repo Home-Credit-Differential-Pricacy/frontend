@@ -1,3 +1,4 @@
+/* Genel uygulama stili */
 .App {
   text-align: center;
 }
@@ -34,5 +35,86 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Navbar stilleri */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 2rem;
+  background-color: #ff6f61; /* Daha modern bir renk */
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar ul.menu li {
+  min-width: 120px; /* Sabit genişlik */
+  text-align: center;
+  position: relative; /* Dil dropdown için gerekli */
+}
+
+/* Dil dropdown menüsü */
+.language-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #2d3748;
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0;
+  min-width: 150px;
+  display: none; /* Varsayılan olarak gizli */
+  z-index: 10;
+}
+
+.language-dropdown li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.language-dropdown li:hover {
+  background-color: #4a5568;
+}
+
+/* Hover sırasında dropdown göster */
+.navbar ul.menu li:hover .language-dropdown {
+  display: block;
+}
+
+/* Tema butonu */
+.theme-button {
+  padding: 0.5rem 1rem;
+  background-color: #ffd700;
+  color: #000;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s ease-in-out;
+}
+
+.theme-button:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive tasarım */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+  }
+
+  .navbar ul {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
