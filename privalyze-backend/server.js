@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
+const axios = require("axios");
 
 const app = express();
 const PORT = 5001;
@@ -71,6 +72,7 @@ app.post("/signin", (req, res) => {
     }
   );
 });
+
 app.post("/set-privacy-level", (req, res) => {
   const { epsilon } = req.body;
 
@@ -81,6 +83,29 @@ app.post("/set-privacy-level", (req, res) => {
   // Burada epsilon'u bir değişkene veya veri tabanına kaydedebilirsiniz
   console.log(`Privacy level updated to: ${epsilon}`);
   res.status(200).json({ message: "Privacy level updated successfully!" });
+});
+
+app.post("/retrieve-data", async (req, res) => {
+  console.log("Retrieve data request received");
+  const { epsilon } = req.body;
+
+  if (!epsilon || epsilon < 0.1 || epsilon > 1.0) {
+    return res.status(400).json({ message: "Invalid privacy level!" });
+  }
+
+  try {
+    console.log("Sending request to dp-service");
+    // Send request to dp-service
+    const response = await axios.post('http://localhost:5002/apply-dp', {
+      epsilon: epsilon,
+      query: "SELECT * FROM your_table", // Replace with your actual query
+    });
+    console.log("Response received from dp-service");
+    res.status(200).json({ data: response.data });
+  } catch (error) {
+    console.error("Error retrieving data:", error.message);
+    res.status(500).json({ message: "Error retrieving data!" });
+  }
 });
 
 app.options('*', cors({ origin: 'http://localhost:3000' })); // Preflight request handling

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import config from '../config';
+import { Line } from 'react-chartjs-2';
 
 const Dashboard = () => {
   const [privacyLevel, setPrivacyLevel] = useState(0.5); // Varsayılan gizlilik seviyesi
   const [message, setMessage] = useState(""); // Mesaj için state
+  const [chartData, setChartData] = useState(null);
 
   const handlePrivacyUpdate = async () => {
     try {
@@ -14,8 +16,26 @@ const Dashboard = () => {
       });
       setMessage("Privacy level updated successfully!"); // Başarılı mesaj
       setTimeout(() => setMessage(""), 3000); // Mesajı 3 saniye sonra temizle
+
+      // Request data from backend
+      const response = await axios.post(`${config.API_URL}/retrieve-data`, {
+        epsilon: privacyLevel,
+      });
+
+      setChartData({
+        labels: response.data.data.map((_, index) => `Point ${index + 1}`),
+        datasets: [
+          {
+            label: 'Noisy Data',
+            data: response.data.data,
+            borderColor: 'rgba(75,192,192,1)',
+            fill: false,
+          },
+        ],
+      });
     } catch (error) {
-      setMessage("Error updating privacy level: " + error.message); // Hata mesajı
+      console.error("Error retrieving data:", error);
+      setMessage("Error: " + error.response?.data?.message || error.message); // Hata mesajı
       setTimeout(() => setMessage(""), 3000);
     }
   };
@@ -59,6 +79,13 @@ const Dashboard = () => {
         <p>Remaining Privacy Budget: <span className="font-bold text-secondary">75%</span></p>
         <p>Last Query: <span className="font-bold">2025-01-05</span></p>
       </div>
+
+      {chartData && (
+        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+          <h2 className="text-lg font-semibold mb-4">Data Chart</h2>
+          <Line data={chartData} />
+        </div>
+      )}
     </div>
   );
 };

@@ -7,7 +7,10 @@
     "start:both": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
   },
   "devDependencies": {
+    "axios": "^1.7.9",
+    "chart.js": "^4.4.7",
     "concurrently": "^7.0.0",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "react-chartjs-2": "^5.3.0"
   }
 }
