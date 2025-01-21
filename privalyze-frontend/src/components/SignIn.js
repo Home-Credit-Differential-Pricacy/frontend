@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import config from '../config';
 
 const SignIn = ({ setIsAuthenticated }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -16,12 +17,11 @@ const SignIn = ({ setIsAuthenticated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5000/signin", formData);
-      setIsAuthenticated(true); // Kullanıcı oturum açtı
-      alert(response.data.message || "Sign in successful!");
-      navigate("/dashboard"); // Dashboard'a yönlendir
+      const response = await axios.post(`${config.API_URL}/signin`, formData);
+      setIsAuthenticated(true);
+      navigate("/dashboard");
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || "Invalid email or password!");
+      setErrorMessage(error.response?.data?.message || "Invalid credentials");
     }
   };
 
