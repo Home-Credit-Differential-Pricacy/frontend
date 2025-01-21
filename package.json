@@ -1,5 +1,13 @@
 {
+  "name": "your-project-name",
+  "version": "1.0.0",
+  "scripts": {
+    "start:frontend": "cd privalyze-frontend && npm start",
+    "start:backend": "cd privalyze-backend && npm start",
+    "start:both": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
+  },
   "devDependencies": {
-    "gh-pages": "^6.3.0"
+    "concurrently": "^7.0.0",
+    "cors": "^2.8.5"
   }
 }

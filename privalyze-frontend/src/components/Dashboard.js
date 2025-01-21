@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import config from '../config';
 
 const Dashboard = () => {
   const [privacyLevel, setPrivacyLevel] = useState(0.5); // Varsayılan gizlilik seviyesi
@@ -8,7 +9,7 @@ const Dashboard = () => {
   const handlePrivacyUpdate = async () => {
     try {
       // Backend'e yeni gizlilik seviyesini gönder
-      await axios.post("http://localhost:5000/set-privacy-level", {
+      await axios.post(`${config.API_URL}/set-privacy-level`, {
         epsilon: privacyLevel,
       });
       setMessage("Privacy level updated successfully!"); // Başarılı mesaj
