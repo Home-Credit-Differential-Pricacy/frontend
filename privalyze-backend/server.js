@@ -4,11 +4,11 @@ const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
-const PORT = 5000;
+const PORT = 5001;
 
 // Middleware
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000' }));
 
 // SQLite Bağlantısı
 const db = new sqlite3.Database("./database.sqlite", (err) => {
@@ -83,6 +83,7 @@ app.post("/set-privacy-level", (req, res) => {
   res.status(200).json({ message: "Privacy level updated successfully!" });
 });
 
+app.options('*', cors({ origin: 'http://localhost:3000' })); // Preflight request handling
 
 // Start server
 app.listen(PORT, () => {

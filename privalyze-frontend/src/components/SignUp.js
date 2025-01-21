@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PasswordStrength from "./PasswordStrength";
+import config from '../config';
 
 const SignUp = ({ setIsAuthenticated }) => {
   const [formData, setFormData] = useState({
@@ -18,14 +19,12 @@ const SignUp = ({ setIsAuthenticated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      await axios.post("http://localhost:5000/signup", formData);
-      alert("Account created successfully!");
-      setIsAuthenticated(true); // Kullanıcıyı otomatik giriş yapmış olarak ayarla
-      navigate("/dashboard"); // Dashboard'a yönlendir
+      await axios.post(`${config.API_URL}/signup`, formData);
+      setIsAuthenticated(true);
+      navigate("/dashboard");
     } catch (error) {
-      alert(error.response?.data?.message || "An error occurred!");
+      alert(error.response?.data?.message || "Registration failed");
     }
   };
 
