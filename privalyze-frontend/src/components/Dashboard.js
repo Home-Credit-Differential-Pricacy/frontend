@@ -45,11 +45,10 @@ const Dashboard = () => {
       {/* Dashboard Başlık */}
       <h1 className="text-4xl font-bold mb-6">Dashboard</h1>
 
-      {/* Slider ve Gizlilik Seviyesi */}
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96 mb-8">
-        <h2 className="text-lg font-semibold mb-4">
-          Adjust Privacy Level (Epsilon)
-        </h2>
+      {/* Privacy Control Section */}
+      <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
+        <h2 className="text-lg font-semibold mb-4">Privacy Level Control</h2>
+
         <input
           type="range"
           min="0.1"
@@ -80,14 +79,26 @@ const Dashboard = () => {
         <p>Last Query: <span className="font-bold">2025-01-05</span></p>
       </div>
 
-      {chartData && (
-        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-          <h2 className="text-lg font-semibold mb-4">Data Chart</h2>
-          <Line data={chartData} />
+      {/* Debt Analysis Section */}
+      {debtAnalysis && (
+        <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center">
+          <h2 className="text-lg font-semibold mb-4">Debt Analysis</h2>
+          <div className="w-full overflow-auto max-h-96">
+            <DebtAnalysisTable data={debtAnalysis} />
+          </div>
         </div>
       )}
+
+        {/* Loading State */}
+      {isLoading && (
+        <div className="flex justify-center items-center">
+          <div className="loading loading-spinner loading-lg"></div>
+        </div>
+      )}
+
     </div>
   );
 };
 
 export default Dashboard;
+
