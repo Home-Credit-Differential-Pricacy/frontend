@@ -91,6 +91,7 @@ const Dashboard = () => {
       {/* Privacy Control Section */}
       <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
         <h2 className="text-lg font-semibold mb-4">Privacy Level Control</h2>
+
         <input
           type="range"
           min="0.1"
@@ -143,8 +144,10 @@ const Dashboard = () => {
           <div className="loading loading-spinner loading-lg"></div>
         </div>
       )}
+
     </div>
   );
 };
 
 export default Dashboard;
+

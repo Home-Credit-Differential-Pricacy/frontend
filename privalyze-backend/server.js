@@ -4,6 +4,7 @@ const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const axios = require("axios");
 
+
 const app = express();
 const PORT = 5001;
 
@@ -85,6 +86,7 @@ app.post("/set-privacy-level", (req, res) => {
   -userın privacy budgetına göre epsilonu updatele ve süreci devam ettir
   */
 
+
   // Burada epsilon'u bir değişkene veya veri tabanına kaydedebilirsiniz
   console.log(`Privacy level updated to: ${epsilon}`);
   res.status(200).json({ message: "Privacy level updated successfully!" });
@@ -141,6 +143,7 @@ app.post("/retrieve-debt-analysis", async (req, res) => {
     res.status(500).json({ message: "Error retrieving debt analysis!" });
   }
 });
+
 
 app.options('*', cors({ origin: 'http://localhost:3000' })); // Preflight request handling
 
