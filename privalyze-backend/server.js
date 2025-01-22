@@ -80,26 +80,13 @@ app.post("/set-privacy-level", (req, res) => {
     return res.status(400).json({ message: "Invalid privacy level!" });
   }
 
-  /*
-  @to-do 
-  -userın privacy budgetına göre epsilonu updatele ve süreci devam ettir
-  */
-
   // Burada epsilon'u bir değişkene veya veri tabanına kaydedebilirsiniz
   console.log(`Privacy level updated to: ${epsilon}`);
   res.status(200).json({ message: "Privacy level updated successfully!" });
 });
 
-app.get("/api/application-test", (req, res) => {
-  db.all("SELECT * FROM application_test", [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ message: "Error retrieving data!" });
-    }
-    res.status(200).json(rows);
-  });
-});
-
-app.post("/retrieve-loan-purposes", async (req, res) => {
+app.post("/retrieve-data", async (req, res) => {
+  console.log("Retrieve data request received");
   const { epsilon } = req.body;
 
   if (!epsilon || epsilon < 0.1 || epsilon > 1.0) {
@@ -107,38 +94,17 @@ app.post("/retrieve-loan-purposes", async (req, res) => {
   }
 
   try {
-    const response = await axios.post('http://127.0.0.1:5002/apply-dp', {
+    console.log("Sending request to dp-service");
+    // Send request to dp-service
+    const response = await axios.post('http://localhost:5002/apply-dp', {
       epsilon: epsilon,
-      query: "SELECT NAME_CASH_LOAN_PURPOSE, COUNT(*) as purpose_count FROM previous_application.previous_application GROUP BY NAME_CASH_LOAN_PURPOSE",
-      table_name: "previous_application"
+      query: "SELECT * FROM your_table", // Replace with your actual query
     });
-    res.status(200).json({ data: response.data.result });
-  } catch (error) {
-    console.error("Error retrieving data:", error.message);
-    console.error("Error response:", error.response?.data);
-    res.status(500).json({ message: "Error retrieving data!" });
-  }
-});
-
-// Add new endpoint for debt ratio analysis
-app.post("/retrieve-debt-analysis", async (req, res) => {
-  const { epsilon } = req.body;
-  console.log("Request received for debt analysis with epsilon:", epsilon);
-
-  if (!epsilon || epsilon < 0.1 || epsilon > 1.0) {
-    return res.status(400).json({ message: "Invalid privacy level!" });
-  }
-
-  try {
-    const response = await axios.post('http://127.0.0.1:5002/apply-dp-debtratio', {
-      epsilon: epsilon,
-      table_name: "application_train"
-    });
+    console.log("Response received from dp-service");
     res.status(200).json({ data: response.data });
   } catch (error) {
-    console.error("Error retrieving debt analysis:", error.message);
-    console.error("Error response:", error.response?.data);
-    res.status(500).json({ message: "Error retrieving debt analysis!" });
+    console.error("Error retrieving data:", error.message);
+    res.status(500).json({ message: "Error retrieving data!" });
   }
 });
 
