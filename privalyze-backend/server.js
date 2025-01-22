@@ -99,7 +99,7 @@ app.get("/api/application-test", (req, res) => {
   });
 });
 
-app.post("/retrieve-data", async (req, res) => {
+app.post("/retrieve-loan-purposes", async (req, res) => {
   const { epsilon } = req.body;
 
   if (!epsilon || epsilon < 0.1 || epsilon > 1.0) {
@@ -117,6 +117,28 @@ app.post("/retrieve-data", async (req, res) => {
     console.error("Error retrieving data:", error.message);
     console.error("Error response:", error.response?.data);
     res.status(500).json({ message: "Error retrieving data!" });
+  }
+});
+
+// Add new endpoint for debt ratio analysis
+app.post("/retrieve-debt-analysis", async (req, res) => {
+  const { epsilon } = req.body;
+  console.log("Request received for debt analysis with epsilon:", epsilon);
+
+  if (!epsilon || epsilon < 0.1 || epsilon > 1.0) {
+    return res.status(400).json({ message: "Invalid privacy level!" });
+  }
+
+  try {
+    const response = await axios.post('http://127.0.0.1:5002/apply-dp-debtratio', {
+      epsilon: epsilon,
+      table_name: "application_train"
+    });
+    res.status(200).json({ data: response.data });
+  } catch (error) {
+    console.error("Error retrieving debt analysis:", error.message);
+    console.error("Error response:", error.response?.data);
+    res.status(500).json({ message: "Error retrieving debt analysis!" });
   }
 });
 
