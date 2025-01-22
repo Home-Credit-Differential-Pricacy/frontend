@@ -1,89 +1,147 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import config from '../config';
-import { Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Dashboard = () => {
-  const [privacyLevel, setPrivacyLevel] = useState(0.5); // Varsayılan gizlilik seviyesi
-  const [message, setMessage] = useState(""); // Mesaj için state
+  const [privacyLevel, setPrivacyLevel] = useState(0.5);
+  const [message, setMessage] = useState("");
   const [chartData, setChartData] = useState(null);
-
+  
   const handlePrivacyUpdate = async () => {
     try {
-      // Backend'e yeni gizlilik seviyesini gönder
-      await axios.post(`${config.API_URL}/set-privacy-level`, {
-        epsilon: privacyLevel,
-      });
-      setMessage("Privacy level updated successfully!"); // Başarılı mesaj
-      setTimeout(() => setMessage(""), 3000); // Mesajı 3 saniye sonra temizle
-
-      // Request data from backend
       const response = await axios.post(`${config.API_URL}/retrieve-data`, {
         epsilon: privacyLevel,
       });
-
-      setChartData({
-        labels: response.data.data.map((_, index) => `Point ${index + 1}`),
-        datasets: [
-          {
-            label: 'Noisy Data',
-            data: response.data.data,
-            borderColor: 'rgba(75,192,192,1)',
-            fill: false,
-          },
-        ],
-      });
+  
+      // Debug response structure
+      console.log("Response Data:", response.data);
+  
+      // Ensure response.data is an array
+      if (Array.isArray(response.data.data)) {
+        // Extract rows (skip the header row)
+        const rows = response.data.data.slice(1);
+  
+        // Separate names and counts
+        const names = rows.map(row => row[0]); // First column
+        const counts = rows.map(row => row[1]); // Second column
+  
+        console.log("Names:", names);
+        console.log("Counts:", counts);
+  
+        // Set chart data
+        setChartData({
+          labels: names,
+          datasets: [
+            {
+              label: "Loan Purposes",
+              data: counts,
+              backgroundColor: "rgba(75,192,192,0.4)",
+              borderColor: "rgba(75,192,192,1)",
+              borderWidth: 1,
+            },
+          ],
+        });
+  
+        setMessage("Data retrieved successfully!");
+      } else {
+        throw new Error("Invalid data format received");
+      }
     } catch (error) {
       console.error("Error retrieving data:", error);
-      setMessage("Error: " + error.response?.data?.message || error.message); // Hata mesajı
+      setMessage("Error: " + (error.response?.data?.message || error.message));
+    } finally {
+      // Clear message after 3 seconds
       setTimeout(() => setMessage(""), 3000);
     }
   };
+  
+  const chartOptions = {
+    responsive: true,
+    scales: {
+      x: {
+        type: 'category',
+        title: {
+          display: true,
+          text: 'Loan Purpose'
+        }
+      },
+      y: {
+        type: 'linear',
+        title: {
+          display: true,
+          text: 'Count'
+        },
+        beginAtZero: true
+      }
+    }
+  };
+
+  // Cleanup chart on unmount
+  useEffect(() => {
+    return () => {
+      if (ChartJS.getChart("loanPurposesChart")) {
+        ChartJS.getChart("loanPurposesChart").destroy();
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center">
-      {/* Dashboard Başlık */}
       <h1 className="text-4xl font-bold mb-6">Dashboard</h1>
-
-      {/* Slider ve Gizlilik Seviyesi */}
+      
       <div className="bg-white p-6 rounded-lg shadow-lg w-96 mb-8">
-        <h2 className="text-lg font-semibold mb-4">
-          Adjust Privacy Level (Epsilon)
-        </h2>
+        <h2 className="text-lg font-semibold mb-4">Adjust Privacy Level (Epsilon)</h2>
         <input
           type="range"
           min="0.1"
           max="1.0"
           step="0.1"
           value={privacyLevel}
-          className="slider w-full"
           onChange={(e) => setPrivacyLevel(parseFloat(e.target.value))}
+          className="range range-primary"
         />
-        <p className="text-center mt-2">
-          Selected Privacy Level:{" "}
-          <span className="font-bold text-primary">{privacyLevel}</span>
-        </p>
+        <div className="text-center mt-2">{privacyLevel}</div>
         <button
           onClick={handlePrivacyUpdate}
-          className="btn btn-primary mt-4 w-full"
+          className="btn btn-primary w-full mt-4"
         >
           Update Privacy Level
         </button>
-        {message && <p className="text-center mt-4 text-green-500">{message}</p>}
       </div>
 
-      {/* Dashboard İçeriği */}
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-lg font-semibold mb-4">Your Data Summary</h2>
-        <p>Total Queries: <span className="font-bold text-primary">12</span></p>
-        <p>Remaining Privacy Budget: <span className="font-bold text-secondary">75%</span></p>
-        <p>Last Query: <span className="font-bold">2025-01-05</span></p>
-      </div>
+      {message && (
+        <div className="alert alert-info mb-4">
+          {message}
+        </div>
+      )}
 
       {chartData && (
-        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-          <h2 className="text-lg font-semibold mb-4">Data Chart</h2>
-          <Line data={chartData} />
+        <div className="bg-white p-6 rounded-lg shadow-lg w-[800px]">
+          <Bar 
+            data={chartData} 
+            options={chartOptions}
+            id="loanPurposesChart"
+          />
         </div>
       )}
     </div>
