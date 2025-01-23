@@ -5,6 +5,8 @@ import DebtAnalysisTable from "./DebtAnalysisTable";
 import LoanPurposesTable from "./LoanPurposesTable";
 import CreditHistoryTable from "./CreditHistoryTable";
 import CreditBalanceTable from "./CreditBalanceTable";
+import ApplicationStatusTable from './ApplicationStatusTable';
+import EducationIncomeTable from "./EducationIncomeTable"; // Import the new component
 
 import {
   Chart as ChartJS,
@@ -18,6 +20,14 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+const privacyLevels = [
+  { value: 0.1, label: "Very High Privacy", description: "Lowest accuracy, highest privacy", icon: "🔒" },
+  { value: 0.3, label: "High Privacy", description: "Low accuracy, high privacy", icon: "🔐" },
+  { value: 0.5, label: "Balanced", description: "Balanced accuracy and privacy", icon: "⚖️" },
+  { value: 0.7, label: "High Accuracy", description: "High accuracy, low privacy", icon: "🔍" },
+  { value: 1.0, label: "Very High Accuracy", description: "Highest accuracy, lowest privacy", icon: "📈" },
+];
+
 const Dashboard = () => {
   const [privacyLevel, setPrivacyLevel] = useState(0.5);
   const [message, setMessage] = useState("");
@@ -25,6 +35,8 @@ const Dashboard = () => {
   const [debtAnalysis, setDebtAnalysis] = useState(null);
   const [creditHistoryData, setCreditHistoryData] = useState(null); // Add state for credit history data
   const [creditBalanceData, setCreditBalanceData] = useState(null);
+  const [applicationStatusData, setApplicationStatusData] = useState(null);
+  const [educationIncomeData, setEducationIncomeData] = useState(null); // Add state for education and income data
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -49,8 +61,7 @@ const Dashboard = () => {
         epsilon: privacyLevel,
       });
 
-      console.log("Debt Analysis Response Dashboard");
-      console.log(debtResponse);
+
       if (debtResponse.data && debtResponse.data.data) {
         setDebtAnalysis(debtResponse.data.data);
       }
@@ -76,10 +87,37 @@ const Dashboard = () => {
         setCreditBalanceData(creditBalanceResponse.data);
       }
 
+      // Fetch Application Status with error handling
+      const applicationStatusResponse = await axios.post(
+        `${config.API_URL}/retrieve-application-status`,
+        { epsilon: privacyLevel }
+      );
+
+      
+      if (applicationStatusResponse.data ) {
+        setApplicationStatusData(applicationStatusResponse.data);
+      } else {
+        console.error("Invalid application status data:", applicationStatusResponse);
+        setError("Invalid application status data format received");
+      }
+
+      // Fetch Education and Income Analysis
+      const educationIncomeResponse = await axios.post(`${config.API_URL}/retrieve-education-income-analysis`, {
+        epsilon: privacyLevel,
+      });
+
+      if (educationIncomeResponse.data) {
+        setEducationIncomeData(educationIncomeResponse.data);
+      }
+
       setMessage("Data retrieved successfully!");
     } catch (error) {
       console.error("Error in fetchData:", error);
-      setError(error.response?.data?.message || error.message || "An error occurred while fetching data.");
+      setError(
+        error.response?.data?.message || 
+        error.message || 
+        "An error occurred while fetching data."
+      );
     } finally {
       setIsLoading(false);
       setTimeout(() => setMessage(""), 3000);
@@ -94,16 +132,21 @@ const Dashboard = () => {
       <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
         <h2 className="text-lg font-semibold mb-4">Privacy Level Control</h2>
 
-        <input
-          type="range"
-          min="0.1"
-          max="1.0"
-          step="0.1"
-          value={privacyLevel}
-          onChange={(e) => setPrivacyLevel(parseFloat(e.target.value))}
-          className="range range-primary w-full"
-        />
-        <div className="text-center mt-2">Epsilon: {privacyLevel}</div>
+        <div className="grid grid-cols-5 gap-4 mb-4">
+          {privacyLevels.map(level => (
+            <div
+              key={level.value}
+              className={`p-4 rounded-lg shadow cursor-pointer transition-transform transform hover:scale-105 ${privacyLevel === level.value ? 'bg-primary text-white' : 'bg-gray-100'}`}
+              onClick={() => setPrivacyLevel(level.value)}
+            >
+              <div className="text-2xl">{level.icon}</div>
+              <div className="text-sm font-semibold">{level.label}</div>
+              <div className="text-xs">{level.description}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-2">Selected Epsilon: {privacyLevel}</div>
         <div className="flex justify-center mt-4">
           <button
             onClick={fetchData}
@@ -118,6 +161,21 @@ const Dashboard = () => {
       {/* Message Display */}
       {message && <div className="alert alert-info mb-4">{message}</div>}
       {error && <div className="alert alert-error mb-4">{error}</div>}
+      
+      {/* Education and Income Analysis Section */}
+      {educationIncomeData && (
+        <EducationIncomeTable data={educationIncomeData} />
+      )}
+
+      {/* Credit History Section */}
+      {creditHistoryData && creditHistoryData.data && (
+        <CreditHistoryTable data={creditHistoryData} />
+      )}
+
+      {/* Credit Balance Analysis Section */}
+      {creditBalanceData && creditBalanceData.data && (
+        <CreditBalanceTable data={creditBalanceData} />
+      )}
 
       {/* Loan Purposes Section */}
       {loanPurposeTableData.length > 0 && (
@@ -137,14 +195,9 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Credit History Section */}
-      {creditHistoryData && creditHistoryData.data && (
-        <CreditHistoryTable data={creditHistoryData} />
-      )}
-
-      {/* Credit Balance Analysis Section */}
-      {creditBalanceData && creditBalanceData.data && (
-        <CreditBalanceTable data={creditBalanceData} />
+      {/* Application Status Section */}
+      {applicationStatusData && (
+        <ApplicationStatusTable data={applicationStatusData} />
       )}
 
       {/* Loading State */}
