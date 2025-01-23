@@ -11,7 +11,7 @@ const CreditHistoryTable = ({ data }) => {
     direction: 'ascending',
   });
 
-  console.log("Credit History Data received:", data);
+  // console.log("Credit History Data received:", data);
 
   // Access the deeply nested data array
   const creditData = data?.data?.data || [];

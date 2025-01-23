@@ -5,6 +5,8 @@ import DebtAnalysisTable from "./DebtAnalysisTable";
 import LoanPurposesTable from "./LoanPurposesTable";
 import CreditHistoryTable from "./CreditHistoryTable";
 import CreditBalanceTable from "./CreditBalanceTable";
+import ApplicationStatusTable from './ApplicationStatusTable';
+import EducationIncomeTable from "./EducationIncomeTable"; // Import the new component
 
 import {
   Chart as ChartJS,
@@ -25,6 +27,8 @@ const Dashboard = () => {
   const [debtAnalysis, setDebtAnalysis] = useState(null);
   const [creditHistoryData, setCreditHistoryData] = useState(null); // Add state for credit history data
   const [creditBalanceData, setCreditBalanceData] = useState(null);
+  const [applicationStatusData, setApplicationStatusData] = useState(null);
+  const [educationIncomeData, setEducationIncomeData] = useState(null); // Add state for education and income data
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -49,8 +53,7 @@ const Dashboard = () => {
         epsilon: privacyLevel,
       });
 
-      console.log("Debt Analysis Response Dashboard");
-      console.log(debtResponse);
+
       if (debtResponse.data && debtResponse.data.data) {
         setDebtAnalysis(debtResponse.data.data);
       }
@@ -76,10 +79,37 @@ const Dashboard = () => {
         setCreditBalanceData(creditBalanceResponse.data);
       }
 
+      // Fetch Application Status with error handling
+      const applicationStatusResponse = await axios.post(
+        `${config.API_URL}/retrieve-application-status`,
+        { epsilon: privacyLevel }
+      );
+
+      
+      if (applicationStatusResponse.data ) {
+        setApplicationStatusData(applicationStatusResponse.data);
+      } else {
+        console.error("Invalid application status data:", applicationStatusResponse);
+        setError("Invalid application status data format received");
+      }
+
+      // Fetch Education and Income Analysis
+      const educationIncomeResponse = await axios.post(`${config.API_URL}/retrieve-education-income-analysis`, {
+        epsilon: privacyLevel,
+      });
+
+      if (educationIncomeResponse.data) {
+        setEducationIncomeData(educationIncomeResponse.data);
+      }
+
       setMessage("Data retrieved successfully!");
     } catch (error) {
       console.error("Error in fetchData:", error);
-      setError(error.response?.data?.message || error.message || "An error occurred while fetching data.");
+      setError(
+        error.response?.data?.message || 
+        error.message || 
+        "An error occurred while fetching data."
+      );
     } finally {
       setIsLoading(false);
       setTimeout(() => setMessage(""), 3000);
@@ -118,6 +148,21 @@ const Dashboard = () => {
       {/* Message Display */}
       {message && <div className="alert alert-info mb-4">{message}</div>}
       {error && <div className="alert alert-error mb-4">{error}</div>}
+      
+      {/* Education and Income Analysis Section */}
+      {educationIncomeData && (
+        <EducationIncomeTable data={educationIncomeData} />
+      )}
+
+            {/* Credit History Section */}
+            {creditHistoryData && creditHistoryData.data && (
+        <CreditHistoryTable data={creditHistoryData} />
+      )}
+
+      {/* Credit Balance Analysis Section */}
+      {creditBalanceData && creditBalanceData.data && (
+        <CreditBalanceTable data={creditBalanceData} />
+      )}
 
       {/* Loan Purposes Section */}
       {loanPurposeTableData.length > 0 && (
@@ -137,14 +182,9 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Credit History Section */}
-      {creditHistoryData && creditHistoryData.data && (
-        <CreditHistoryTable data={creditHistoryData} />
-      )}
-
-      {/* Credit Balance Analysis Section */}
-      {creditBalanceData && creditBalanceData.data && (
-        <CreditBalanceTable data={creditBalanceData} />
+      {/* Application Status Section */}
+      {applicationStatusData && (
+        <ApplicationStatusTable data={applicationStatusData} />
       )}
 
       {/* Loading State */}

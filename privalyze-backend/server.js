@@ -214,6 +214,50 @@ app.post("/retrieve-credit-balance", async (req, res) => {
   }
 });
 
+app.post("/retrieve-application-status", async (req, res) => {
+  const { epsilon } = req.body;
+
+  try {
+    const response = await axios.post('http://127.0.0.1:5002/application-status', {
+      epsilon: epsilon,
+      table_name: "previous_application"
+    });
+
+    // Parse and send the data properly
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error("Error retrieving application status:", error.message);
+    res.status(500).json({ 
+      message: "Error retrieving application status!",
+      error: error.message,
+      success: false 
+    });
+  }
+});
+
+app.post("/retrieve-education-income-analysis", async (req, res) => {
+  const { epsilon } = req.body;
+
+  if (!epsilon || epsilon < 0.1 || epsilon > 1.0) {
+    return res.status(400).json({ message: "Invalid privacy level!" });
+  }
+
+  try {
+    const response = await axios.post('http://127.0.0.1:5002/education-income-analysis', {
+      epsilon: epsilon,
+      table_name: "application_train"
+    });
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error("Error retrieving education and income analysis:", error.message);
+    res.status(500).json({ 
+      message: "Error retrieving education and income analysis!",
+      error: error.message,
+      success: false 
+    });
+  }
+});
+
 app.options('*', cors({ origin: 'http://localhost:3000' })); // Preflight request handling
 
 // Start server
