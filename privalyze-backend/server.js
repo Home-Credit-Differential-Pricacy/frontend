@@ -1,34 +1,35 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const sqlite3 = require("sqlite3").verbose();
+const mysql = require('mysql2');
 const axios = require("axios");
+require('dotenv').config();
 
 const app = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({ origin: 'http://localhost:3000' }));
 
-// SQLite Bağlantısı
-const db = new sqlite3.Database("./database.sqlite", (err) => {
+// MySQL Connection
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE
+});
+
+db.connect((err) => {
   if (err) {
-    console.error("Error opening database:", err.message);
-  } else {
-    console.log("Connected to SQLite database.");
-    db.run(
-      "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, password TEXT)",
-      (err) => {
-        if (err) {
-          console.error("Error creating users table:", err.message);
-        }
-      }
-    );
+    console.error('Error connecting to MySQL:', err);
+    return;
   }
+  console.log('Connected to MySQL database');
 });
 
 // Routes
+// Update signup route for MySQL
 app.post("/signup", (req, res) => {
   const { name, email, password } = req.body;
 
@@ -36,21 +37,19 @@ app.post("/signup", (req, res) => {
     return res.status(400).json({ message: "All fields are required!" });
   }
 
-  db.run(
-    "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-    [name, email, password],
-    (err) => {
-      if (err) {
-        if (err.code === "SQLITE_CONSTRAINT") {
-          return res.status(400).json({ message: "User already exists!" });
-        }
-        return res.status(500).json({ message: "Error inserting user!" });
+  const query = 'INSERT INTO userdata (fullname, email, password) VALUES (?, ?, ?)';
+  db.query(query, [name, email, password], (err, result) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(400).json({ message: "User already exists!" });
       }
-      res.status(201).json({ message: "User registered successfully!" });
+      return res.status(500).json({ message: "Error registering user!" });
     }
-  );
+    res.status(201).json({ message: "User registered successfully!" });
+  });
 });
 
+// Update signin route for MySQL
 app.post("/signin", (req, res) => {
   const { email, password } = req.body;
 
@@ -58,19 +57,16 @@ app.post("/signin", (req, res) => {
     return res.status(400).json({ message: "Both fields are required!" });
   }
 
-  db.get(
-    "SELECT * FROM users WHERE email = ? AND password = ?",
-    [email, password],
-    (err, row) => {
-      if (err) {
-        return res.status(500).json({ message: "Error querying database!" });
-      }
-      if (!row) {
-        return res.status(401).json({ message: "Invalid email or password!" });
-      }
-      res.status(200).json({ message: `Welcome back, ${row.name}!` });
+  const query = 'SELECT * FROM userdata WHERE email = ? AND password = ?';
+  db.query(query, [email, password], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: "Error querying database!" });
     }
-  );
+    if (results.length === 0) {
+      return res.status(401).json({ message: "Invalid email or password!" });
+    }
+    res.status(200).json({ message: `Welcome back, ${results[0].fullname}!` });
+  });
 });
 
 app.post("/set-privacy-level", (req, res) => {
