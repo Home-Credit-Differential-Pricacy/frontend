@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
 import config from "../config";
-import { Bar } from "react-chartjs-2";
 import DebtAnalysisTable from "./DebtAnalysisTable";
 import LoanPurposesTable from "./LoanPurposesTable";
+import CreditHistoryTable from "./CreditHistoryTable";
+import CreditBalanceTable from "./CreditBalanceTable";
 
 import {
   Chart as ChartJS,
@@ -20,9 +21,10 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const Dashboard = () => {
   const [privacyLevel, setPrivacyLevel] = useState(0.5);
   const [message, setMessage] = useState("");
-  const [loanPurposeData, setLoanPurposeData] = useState(null);
-  const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Added for table
+  const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated for table
   const [debtAnalysis, setDebtAnalysis] = useState(null);
+  const [creditHistoryData, setCreditHistoryData] = useState(null); // Add state for credit history data
+  const [creditBalanceData, setCreditBalanceData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -33,35 +35,13 @@ const Dashboard = () => {
       setError(null);
 
       // Fetch Loan Purposes Distribution
-      const loanResponse = await axios.post(`${config.API_URL}/retrieve-loan-purposes`, {
+      const loanResponse = await axios.post(`${config.API_URL}/retrieve-loan-purposes-smartnoise`, {
         epsilon: privacyLevel,
       });
 
-      if (loanResponse.data && loanResponse.data.data) {
-        // Extract loan purposes and counts for chart and table
-        console.log(loanResponse.data);
-        const validData = loanResponse.data.data.filter(
-          (item) => item[0] !== "NAME_CASH_LOAN_PURPOSE" && item[1] !== undefined
-        );  
-        const loanPurposes = validData.map((item) => item[0]);
-        const counts = validData.map((item) => item[1]);  
-        console.log(loanPurposes);
-        console.log(counts);
 
-        setLoanPurposeData({
-          labels: loanPurposes,
-          datasets: [
-            {
-              label: "Loan Purposes",
-              data: counts,
-              backgroundColor: "rgba(75,192,192,0.4)",
-              borderColor: "rgba(75,192,192,1)",
-              borderWidth: 1,
-            },
-          ],
-        });
-
-        setLoanPurposeTableData(loanResponse.data.data); // For the table
+      if (loanResponse.data && loanResponse.data.result) {
+        setLoanPurposeTableData(loanResponse.data.result);
       }
 
       // Fetch Debt Analysis
@@ -69,15 +49,37 @@ const Dashboard = () => {
         epsilon: privacyLevel,
       });
 
-      console.log(debtResponse.data.data);
-
+      console.log("Debt Analysis Response Dashboard");
+      console.log(debtResponse);
       if (debtResponse.data && debtResponse.data.data) {
         setDebtAnalysis(debtResponse.data.data);
       }
 
+      // Fetch Credit History
+      const creditHistoryResponse = await axios.post(`${config.API_URL}/retrieve-credit-history`, {
+        epsilon: privacyLevel,
+      });
+
+      if (creditHistoryResponse.data) {
+        setCreditHistoryData(creditHistoryResponse.data);
+      } else {
+        console.error("Invalid credit history data format:", creditHistoryResponse.data);
+        setError("Invalid credit history data format received");
+      }
+
+      // Fetch Credit Balance Analysis
+      const creditBalanceResponse = await axios.post(`${config.API_URL}/retrieve-credit-balance`, {
+        epsilon: privacyLevel,
+      });
+
+      if (creditBalanceResponse.data) {
+        setCreditBalanceData(creditBalanceResponse.data);
+      }
+
       setMessage("Data retrieved successfully!");
     } catch (error) {
-      setError(error.message || "An error occurred while fetching data.");
+      console.error("Error in fetchData:", error);
+      setError(error.response?.data?.message || error.message || "An error occurred while fetching data.");
     } finally {
       setIsLoading(false);
       setTimeout(() => setMessage(""), 3000);
@@ -118,27 +120,34 @@ const Dashboard = () => {
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
       {/* Loan Purposes Section */}
-      {loanPurposeData && (
+      {loanPurposeTableData.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
           <h2 className="text-lg font-semibold mb-4">Loan Purposes Distribution</h2>
-            {/* Chart */}
-            <div className="chart-container">
-              <Bar data={loanPurposeData} options={{ responsive: true }} />
-          </div>
+          <LoanPurposesTable data={loanPurposeTableData} />
         </div>
       )}
 
       {/* Debt Analysis Section */}
       {debtAnalysis && (
-        <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center">
+        <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center mb-8">
           <h2 className="text-lg font-semibold mb-4">Debt Analysis</h2>
-          <div className="w-full overflow-auto max-h-96">
+          <div className="w-full overflow-auto max-h-120">
             <DebtAnalysisTable data={debtAnalysis} />
           </div>
         </div>
       )}
 
-        {/* Loading State */}
+      {/* Credit History Section */}
+      {creditHistoryData && creditHistoryData.data && (
+        <CreditHistoryTable data={creditHistoryData} />
+      )}
+
+      {/* Credit Balance Analysis Section */}
+      {creditBalanceData && creditBalanceData.data && (
+        <CreditBalanceTable data={creditBalanceData} />
+      )}
+
+      {/* Loading State */}
       {isLoading && (
         <div className="flex justify-center items-center">
           <div className="loading loading-spinner loading-lg"></div>
