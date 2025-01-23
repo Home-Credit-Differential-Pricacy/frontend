@@ -20,6 +20,14 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+const privacyLevels = [
+  { value: 0.1, label: "Very High Privacy", description: "Lowest accuracy, highest privacy", icon: "🔒" },
+  { value: 0.3, label: "High Privacy", description: "Low accuracy, high privacy", icon: "🔐" },
+  { value: 0.5, label: "Balanced", description: "Balanced accuracy and privacy", icon: "⚖️" },
+  { value: 0.7, label: "High Accuracy", description: "High accuracy, low privacy", icon: "🔍" },
+  { value: 1.0, label: "Very High Accuracy", description: "Highest accuracy, lowest privacy", icon: "📈" },
+];
+
 const Dashboard = () => {
   const [privacyLevel, setPrivacyLevel] = useState(0.5);
   const [message, setMessage] = useState("");
@@ -124,16 +132,21 @@ const Dashboard = () => {
       <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
         <h2 className="text-lg font-semibold mb-4">Privacy Level Control</h2>
 
-        <input
-          type="range"
-          min="0.1"
-          max="1.0"
-          step="0.1"
-          value={privacyLevel}
-          onChange={(e) => setPrivacyLevel(parseFloat(e.target.value))}
-          className="range range-primary w-full"
-        />
-        <div className="text-center mt-2">Epsilon: {privacyLevel}</div>
+        <div className="grid grid-cols-5 gap-4 mb-4">
+          {privacyLevels.map(level => (
+            <div
+              key={level.value}
+              className={`p-4 rounded-lg shadow cursor-pointer transition-transform transform hover:scale-105 ${privacyLevel === level.value ? 'bg-primary text-white' : 'bg-gray-100'}`}
+              onClick={() => setPrivacyLevel(level.value)}
+            >
+              <div className="text-2xl">{level.icon}</div>
+              <div className="text-sm font-semibold">{level.label}</div>
+              <div className="text-xs">{level.description}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-2">Selected Epsilon: {privacyLevel}</div>
         <div className="flex justify-center mt-4">
           <button
             onClick={fetchData}
@@ -154,8 +167,8 @@ const Dashboard = () => {
         <EducationIncomeTable data={educationIncomeData} />
       )}
 
-            {/* Credit History Section */}
-            {creditHistoryData && creditHistoryData.data && (
+      {/* Credit History Section */}
+      {creditHistoryData && creditHistoryData.data && (
         <CreditHistoryTable data={creditHistoryData} />
       )}
 
