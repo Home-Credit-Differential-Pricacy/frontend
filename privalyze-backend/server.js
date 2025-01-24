@@ -150,6 +150,45 @@ app.post("/save-dashboard-data", (req, res) => {
   );
 });
 
+app.get("/get-past-dashboards", (req, res) => {
+  const userId = req.query.userId;
+
+  const query = `
+    SELECT id, created_date
+    FROM user_dashboard_data
+    WHERE user_id = ?
+    ORDER BY created_date DESC
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: "Error retrieving dashboards!" });
+    }
+    res.status(200).json({ pastDashboards: results });
+  });
+});
+
+app.get("/get-dashboard-details", (req, res) => {
+  const dashboardId = req.query.id;
+
+  const query = `
+    SELECT *
+    FROM user_dashboard_data
+    WHERE id = ?
+  `;
+
+  db.query(query, [dashboardId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: "Error retrieving dashboard details!" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Dashboard not found." });
+    }
+
+    res.status(200).json({ dashboard: results[0] });
+  });
+});
 
 
 app.post("/set-privacy-level", (req, res) => {
