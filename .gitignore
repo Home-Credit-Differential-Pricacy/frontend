@@ -7,3 +7,4 @@ dist/
 
 # Ortam dosyaları
 .env.local
+.env
