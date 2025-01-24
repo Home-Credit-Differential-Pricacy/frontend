@@ -156,7 +156,7 @@ const Dashboard = () => {
       // Deduct privacy cost from the budget and update the database
       console.log("Deducting privacy cost from budget...");
       console.log(privacyBudget + "is deducted to"+ privacyLevel)
-      const newPrivacyBudget = privacyBudget - privacyLevel;
+      const newPrivacyBudget = Math.round((privacyBudget - privacyLevel) * 10) / 10;
       await axios.post(`${config.API_URL}/update-privacy-budget`, {
         id: userID,
         newBudget: newPrivacyBudget

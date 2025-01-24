@@ -168,18 +168,19 @@ app.get("/get-past-dashboards", (req, res) => {
 app.post("/update-privacy-budget", (req, res) => {
   const { id, newBudget } = req.body;
 
-  if (!id  || newBudget < 0) {
+  if (!id || newBudget < 0) {
     console.log(id);
     console.log(newBudget);
     return res.status(400).json({ message: "Invalid request parameters!" });
   }
 
+  const roundedBudget = Math.round(newBudget * 10) / 10;
   const query = 'UPDATE userdata SET privacyBudget = ? WHERE id = ?';
-  db.query(query, [newBudget, id], (err, results) => {
+  db.query(query, [roundedBudget, id], (err, results) => {
     if (err) {
       return res.status(500).json({ message: "Error updating privacy budget!" });
     }
-    console.log('Privacy budget' +'updated to ' + newBudget);
+    console.log('Privacy budget updated to ' + roundedBudget);
     res.status(200).json({ message: "Privacy budget updated successfully!" });
   });
 });
