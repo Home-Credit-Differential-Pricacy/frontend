@@ -162,9 +162,7 @@ app.get("/get-past-dashboards", (req, res) => {
       return res.status(500).json({ message: "Error retrieving dashboards!" });
     }
     res.status(200).json({ pastDashboards: results });
-
-    currentUser = null;
-  res.status(200).json({ message: "User logged out successfully!" });
+  });
 });
 
 app.post("/update-privacy-budget", (req, res) => {
