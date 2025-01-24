@@ -3,15 +3,17 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const mysql = require('mysql2');
 const axios = require("axios");
+
+
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5002;
 
 // Middleware
-app.use(bodyParser.json());
 app.use(cors({ origin: 'http://localhost:3000' }));
-
+app.use(bodyParser.json({ limit: "100mb" })); // JSON boyut sınırını artırın
+app.use(bodyParser.urlencoded({ limit: "100mb", extended: true })); // URL-encoded veriler için sınır
 // MySQL Connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -48,6 +50,9 @@ app.post("/signup", (req, res) => {
   });
 });
 
+let currentUser = null; // Sadece tek bir kullanıcıyı saklamak için
+
+
 app.post("/signin", (req, res) => {
   const { email, password } = req.body;
 
@@ -63,7 +68,8 @@ app.post("/signin", (req, res) => {
     if (results.length === 0) {
       return res.status(401).json({ message: "Invalid email or password!" });
     }
-    currentUser = results[0];
+    currentUser = results[0]; // Kullanıcıyı currentUser'a ata
+
     res.status(200).json({
       message: `Welcome back, ${results[0].fullname}!`,
       currentUserId: results[0].id,
@@ -75,6 +81,7 @@ app.get("/current-user", (req, res) => {
   if (!currentUser) {
     return res.status(404).json({ message: "No user is currently signed in!" });
   }
+
   res.status(200).json({ currentUserId: currentUser.id });
 });
 
@@ -82,8 +89,80 @@ app.post("/logout", (req, res) => {
   if (!currentUser) {
     return res.status(400).json({ message: "No user is currently signed in!" });
   }
-  currentUser = null;
+
+  currentUser = null; // Kullanıcıyı sıfırla
   res.status(200).json({ message: "User logged out successfully!" });
+});
+
+app.post("/save-dashboard-data", (req, res) => {
+  const {
+    userId,
+    loanPurposes,
+    debtAnalysis,
+    creditHistory,
+    creditBalance,
+    applicationStatus,
+    educationIncome,
+  } = req.body;
+
+  // Giriş Kontrolü
+  if (!userId) {
+    return res.status(400).json({ message: "User ID is required!" });
+  }
+
+  // SQL Sorgusu (Sadece INSERT)
+  const query = `
+    INSERT INTO user_dashboard_data (
+      user_id,
+      loan_purposes,
+      debt_analysis,
+      credit_history,
+      credit_balance,
+      application_status,
+      education_income,
+      created_date
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `;
+
+  // Veritabanına Kaydet
+  db.query(
+    query,
+    [
+      userId,
+      JSON.stringify(loanPurposes), // Loan Purposes verisini JSON formatında saklar
+      JSON.stringify(debtAnalysis), // Debt Analysis verisini JSON formatında saklar
+      JSON.stringify(creditHistory), // Credit History verisini JSON formatında saklar
+      JSON.stringify(creditBalance), // Credit Balance verisini JSON formatında saklar
+      JSON.stringify(applicationStatus), // Application Status verisini JSON formatında saklar
+      JSON.stringify(educationIncome), // Education Income verisini JSON formatında saklar
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Error saving dashboard data:", err);
+        return res.status(500).json({ message: "Error saving dashboard data!" });
+      }
+      res.status(200).json({ message: "Dashboard data saved successfully!" });
+    }
+  );
+});
+
+app.get("/get-past-dashboards", (req, res) => {
+  const userId = req.query.userId;
+
+  const query = `
+    SELECT id, created_date
+    FROM user_dashboard_data
+    WHERE user_id = ?
+    ORDER BY created_date DESC
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: "Error retrieving dashboards!" });
+    }
+    res.status(200).json({ pastDashboards: results });
+  });
 });
 
 app.post("/update-privacy-budget", (req, res) => {
@@ -120,8 +199,32 @@ app.post("/privacyBudget", (req, res) => {
       return res.status(404).json({ message: "User not found!" });
     }
     res.status(200).json({ privacyBudget: results[0].privacyBudget });
+
   });
 });
+
+app.get("/get-dashboard-details", (req, res) => {
+  const dashboardId = req.query.id;
+
+  const query = `
+    SELECT *
+    FROM user_dashboard_data
+    WHERE id = ?
+  `;
+
+  db.query(query, [dashboardId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: "Error retrieving dashboard details!" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Dashboard not found." });
+    }
+
+    res.status(200).json({ dashboard: results[0] });
+  });
+});
+
 
 app.post("/set-privacy-level", (req, res) => {
   const { epsilon } = req.body;
@@ -293,7 +396,11 @@ app.post("/retrieve-education-income-analysis", async (req, res) => {
       epsilon,
       table_name: "application_train"
     });
-    res.status(200).json(response.data);
+    // Structure the response properly
+    res.status(200).json({
+      data: response.data,
+      success: true
+    });
   } catch (error) {
     console.error("Error retrieving education and income analysis:", error.message);
     res.status(500).json({ 

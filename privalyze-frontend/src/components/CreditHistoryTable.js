@@ -14,7 +14,7 @@ const CreditHistoryTable = ({ data }) => {
   // console.log("Credit History Data received:", data);
 
   // Access the deeply nested data array
-  const creditData = data?.data?.data || [];
+  const creditData = data?.data?.data || data?.data || [];
 
   // Validate data structure
   if (!Array.isArray(creditData) || creditData.length === 0) {

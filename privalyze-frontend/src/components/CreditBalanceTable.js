@@ -8,7 +8,7 @@ const CreditBalanceTable = ({ data }) => {
     direction: 'ascending',
   });
 
-  const creditData = data?.data?.data || [];
+  const creditData = data?.data?.data || data?.data || [];
 
   if (!Array.isArray(creditData) || creditData.length === 0) {
     return <div className="alert alert-error">No credit balance data available</div>;

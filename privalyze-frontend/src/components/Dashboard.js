@@ -72,6 +72,9 @@ const Dashboard = () => {
       setMessage("");
       setError(null);
 
+      // Kullanıcı ID'sini al
+      const currentUserResponse = await axios.get(`${config.API_URL}/current-user`);
+      const userId = currentUserResponse.data.currentUserId;
       // Fetch Loan Purposes Distribution
       const loanResponse = await axios.post(`${config.API_URL}/retrieve-loan-purposes-smartnoise`, {
         epsilon: privacyLevel,
@@ -132,6 +135,24 @@ const Dashboard = () => {
         setEducationIncomeData(educationIncomeResponse.data);
       }
 
+      const allData = {
+        loanPurposes: loanResponse.data.result || [],
+        debtAnalysis: debtResponse.data.data || [],
+        creditHistory: creditHistoryResponse.data.data || [],
+        creditBalance: creditBalanceResponse.data.data || [],
+        applicationStatus: applicationStatusResponse.data.data || [],
+        educationIncome: educationIncomeResponse.data.data || [],
+      };
+      // Kullanıcı ID'si ile veriyi birleştirme
+    const userDataToSave = {
+      userId,
+      ...allData,
+    };
+
+    // JSON olarak kaydetme (backend'e)
+    await axios.post(`${config.API_URL}/save-dashboard-data`, userDataToSave);
+
+
       // Deduct privacy cost from the budget and update the database
       console.log("Deducting privacy cost from budget...");
       console.log(privacyBudget + "is deducted to"+ privacyLevel)
@@ -189,7 +210,7 @@ const Dashboard = () => {
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
       {/* Education and Income Analysis Section */}
-      {educationIncomeData && (
+      {educationIncomeData && educationIncomeData.data &&(
         <EducationIncomeTable data={educationIncomeData} />
       )}
       {/* Credit History Section */}
@@ -210,7 +231,6 @@ const Dashboard = () => {
       {/* Debt Analysis Section */}
       {debtAnalysis && (
         <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center mb-8">
-          <h2 className="text-lg font-semibold mb-4">Debt Analysis</h2>
           <div className="w-full overflow-auto max-h-120">
             <DebtAnalysisTable data={debtAnalysis} />
           </div>

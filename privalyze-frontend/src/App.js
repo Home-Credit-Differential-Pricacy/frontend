@@ -9,7 +9,8 @@ import Dashboard from "./components/Dashboard";
 import Profile from "./components/Profile"; // Profil bileşeni
 import TwoFactorAuth from "./components/TwoFactorAuth"; // İki faktörlü giriş
 import ForgotPassword from "./components/ForgotPassword"; // Şifre sıfırlama
-
+import PastDashboardList from "./components/PastDashboardList"; // Listeleme sayfası
+import PastDashboardDetails from "./components/PastDashboardDetails"; // Detay sayfası
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Kullanıcı oturum durumu
   const [theme, setTheme] = useState("light"); // Varsayılan tema
@@ -71,6 +72,11 @@ function App() {
           <li>
             <Link to="/dashboard">{t("dashboard")}</Link>
           </li>
+          {/* Past Dashboards Link (Başlangıç) */}
+          <li>
+                  <Link to="/past-dashboards">{t("Past Dashboards")}</Link>
+                </li>
+                {/* Past Dashboards Link (Bitiş) */}
           <li>
             <Link to="/profile">{t("profile")}</Link>
           </li>
@@ -142,6 +148,30 @@ function App() {
           element={
             isAuthenticated ? (
               <Dashboard />
+            ) : (
+              <div className="text-center text-xl mt-10 text-error">
+                {t("sign_in_to_view")}
+              </div>
+            )
+          }
+        />
+        <Route
+          path="/past-dashboards"
+          element={
+            isAuthenticated ? (
+              <PastDashboardList />
+            ) : (
+              <div className="text-center text-xl mt-10 text-error">
+                {t("sign_in_to_view")}
+              </div>
+            )
+          }
+        />
+        <Route
+          path="/past-dashboard/:id"
+          element={
+            isAuthenticated ? (
+              <PastDashboardDetails />
             ) : (
               <div className="text-center text-xl mt-10 text-error">
                 {t("sign_in_to_view")}

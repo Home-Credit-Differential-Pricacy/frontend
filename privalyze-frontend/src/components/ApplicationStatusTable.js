@@ -14,7 +14,7 @@ const parseData = (data) => {
       return null;
     }
   }
-  return data;
+  return {data: data};
 };
 
 const ApplicationStatusTable = ({ data }) => {
@@ -23,14 +23,19 @@ const ApplicationStatusTable = ({ data }) => {
 
   // Use the helper function to parse data
   const parsedData = parseData(data);
+  let resultData = [];
 
-  if (!parsedData || !parsedData.data) {
+  if (parsedData && Array.isArray(parsedData.data)) {
+    resultData = parsedData.data;
+  } else if (parsedData && parsedData.data && Array.isArray(parsedData.data.data)) {
+    resultData = parsedData.data.data;
+  } else {
     console.log("Missing or invalid data structure:", parsedData);
     return <div>No application status data available</div>;
   }
 
-  const resultData = parsedData.data;
-//   console.log("Application Status Data received:", resultData);
+  console.log("ApllicationStatusInside");
+  console.log(parsedData);
 
   const chartOptions = {
     responsive: true,
