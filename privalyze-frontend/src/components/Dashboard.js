@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import config from "../config";
 import DebtAnalysisTable from "./DebtAnalysisTable";
@@ -30,9 +30,9 @@ const privacyLevels = [
 
 const Dashboard = () => {
   const [privacyLevel, setPrivacyLevel] = useState(0.5);
-  const [privacyBudget, setPrivacyBudget] = useState(5); // Initial privacy budget
+  const [privacyBudget, setPrivacyBudget] = useState(0); // Initial privacy budget
   const [message, setMessage] = useState("");
-const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated for table
+  const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated for table
   const [debtAnalysis, setDebtAnalysis] = useState(null);
   const [creditHistoryData, setCreditHistoryData] = useState(null); // Add state for credit history data
   const [creditBalanceData, setCreditBalanceData] = useState(null);
@@ -40,6 +40,26 @@ const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated
   const [educationIncomeData, setEducationIncomeData] = useState(null); // Add state for education and income data
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [userID, setUserID] = useState(null); // Add state for userID
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await axios.get(`${config.API_URL}/current-user`);
+        const userID = response.data.currentUserId;
+        setUserID(userID); // Set userID in state
+        const privacyBudgetResponse = await axios.post(`${config.API_URL}/privacyBudget`, {
+          id: userID
+        });
+        setPrivacyBudget(privacyBudgetResponse.data.privacyBudget);
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+        setError("Error fetching current user.");
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   const fetchData = async () => {
     if (privacyLevel > privacyBudget) {
@@ -112,8 +132,16 @@ const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated
         setEducationIncomeData(educationIncomeResponse.data);
       }
 
-      // Deduct privacy cost from the budget
-      setPrivacyBudget((prev) => prev - privacyLevel);
+      // Deduct privacy cost from the budget and update the database
+      console.log("Deducting privacy cost from budget...");
+      console.log(privacyBudget + "is deducted to"+ privacyLevel)
+      const newPrivacyBudget = privacyBudget - privacyLevel;
+      await axios.post(`${config.API_URL}/update-privacy-budget`, {
+        id: userID,
+        newBudget: newPrivacyBudget
+      });
+      setPrivacyBudget(newPrivacyBudget);
+
       setMessage("Data retrieved successfully!");
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -122,7 +150,6 @@ const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen bg-base-200 p-8">
@@ -145,12 +172,12 @@ const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated
           ))}
         </div>
 
-        <div className="text-center mt-2">Selected Privacy Cost: {privacyLevel}</div>
-        <div className="text-center mt-2">Remaining Budget: {privacyBudget}</div>
+        <div className="text-center mt-2 text-lg font-medium">Selected Privacy Cost: {privacyLevel}</div>
+        <div className="text-center mt-2 text-lg font-medium">Remaining Budget: {privacyBudget}</div>
         <div className="flex justify-center mt-4">
           <button
             onClick={fetchData}
-            className="btn btn-primary"
+            className={`btn btn-primary ${isLoading || privacyLevel > privacyBudget ? 'btn-disabled' : ''}`}
             disabled={isLoading || privacyLevel > privacyBudget}
           >
             {isLoading ? "Fetching Data..." : "Retrieve Data"}
