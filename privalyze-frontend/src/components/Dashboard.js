@@ -46,6 +46,9 @@ const Dashboard = () => {
       setMessage("");
       setError(null);
 
+      // Kullanıcı ID'sini al
+      const currentUserResponse = await axios.get(`${config.API_URL}/current-user`);
+      const userId = currentUserResponse.data.currentUserId;
       // Fetch Loan Purposes Distribution
       const loanResponse = await axios.post(`${config.API_URL}/retrieve-loan-purposes-smartnoise`, {
         epsilon: privacyLevel,
@@ -110,7 +113,24 @@ const Dashboard = () => {
         setEducationIncomeData(educationIncomeResponse.data);
       }
 
-      setMessage("Data retrieved successfully!");
+      const allData = {
+        loanPurposes: loanResponse.data.result || [],
+        debtAnalysis: debtResponse.data.data || [],
+        creditHistory: creditHistoryResponse.data.data || [],
+        creditBalance: creditBalanceResponse.data.data || [],
+        applicationStatus: applicationStatusResponse.data.data || [],
+        educationIncome: educationIncomeResponse.data.data || [],
+      };
+      // Kullanıcı ID'si ile veriyi birleştirme
+    const userDataToSave = {
+      userId,
+      ...allData,
+    };
+
+    // JSON olarak kaydetme (backend'e)
+    await axios.post(`${config.API_URL}/save-dashboard-data`, userDataToSave);
+
+    setMessage("Data retrieved and saved successfully!");
     } catch (error) {
       console.error("Error in fetchData:", error);
       setError(

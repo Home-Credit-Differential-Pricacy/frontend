@@ -49,7 +49,9 @@ app.post("/signup", (req, res) => {
   });
 });
 
-// Update signin route for MySQL
+let currentUser = null; // Sadece tek bir kullanıcıyı saklamak için
+
+// Kullanıcı giriş yapınca currentUser atanır
 app.post("/signin", (req, res) => {
   const { email, password } = req.body;
 
@@ -65,9 +67,94 @@ app.post("/signin", (req, res) => {
     if (results.length === 0) {
       return res.status(401).json({ message: "Invalid email or password!" });
     }
-    res.status(200).json({ message: `Welcome back, ${results[0].fullname}!` });
+
+    currentUser = results[0]; // Kullanıcıyı currentUser'a ata
+    res.status(200).json({
+      message: `Welcome back, ${results[0].fullname}!`,
+      currentUserId: results[0].id,
+    });
   });
 });
+
+// Mevcut kullanıcıyı döner
+app.get("/current-user", (req, res) => {
+  if (!currentUser) {
+    return res.status(404).json({ message: "No user is currently signed in!" });
+  }
+
+  res.status(200).json({ currentUserId: currentUser.id });
+});
+
+// Kullanıcı çıkış yaptığında currentUser sıfırlanır
+app.post("/logout", (req, res) => {
+  if (!currentUser) {
+    return res.status(400).json({ message: "No user is currently signed in!" });
+  }
+
+  currentUser = null; // Kullanıcıyı sıfırla
+  res.status(200).json({ message: "User logged out successfully!" });
+});
+app.post("/save-dashboard-data", (req, res) => {
+  const {
+    userId,
+    loanPurposes,
+    debtAnalysis,
+    creditHistory,
+    creditBalance,
+    applicationStatus,
+    educationIncome,
+  } = req.body;
+
+  // Giriş Kontrolü
+  if (!userId) {
+    return res.status(400).json({ message: "User ID is required!" });
+  }
+
+  // SQL Sorgusu
+  const query = `
+    INSERT INTO user_dashboard_data (
+      user_id,
+      loan_purposes,
+      debt_analysis,
+      credit_history,
+      credit_balance,
+      application_status,
+      education_income,
+      created_date
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    ON DUPLICATE KEY UPDATE
+      loan_purposes = VALUES(loan_purposes),
+      debt_analysis = VALUES(debt_analysis),
+      credit_history = VALUES(credit_history),
+      credit_balance = VALUES(credit_balance),
+      application_status = VALUES(application_status),
+      education_income = VALUES(education_income),
+      last_updated = CURRENT_TIMESTAMP
+  `;
+
+  // Veritabanına Kaydet
+  db.query(
+    query,
+    [
+      userId,
+      JSON.stringify(loanPurposes), // Loan Purposes verisini JSON formatında saklar
+      JSON.stringify(debtAnalysis), // Debt Analysis verisini JSON formatında saklar
+      JSON.stringify(creditHistory), // Credit History verisini JSON formatında saklar
+      JSON.stringify(creditBalance), // Credit Balance verisini JSON formatında saklar
+      JSON.stringify(applicationStatus), // Application Status verisini JSON formatında saklar
+      JSON.stringify(educationIncome), // Education Income verisini JSON formatında saklar
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Error saving dashboard data:", err);
+        return res.status(500).json({ message: "Error saving dashboard data!" });
+      }
+      res.status(200).json({ message: "Dashboard data saved successfully!" });
+    }
+  );
+});
+
 
 app.post("/set-privacy-level", (req, res) => {
   const { epsilon } = req.body;
