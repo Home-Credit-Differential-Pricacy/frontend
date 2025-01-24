@@ -22,7 +22,7 @@ const SignUp = ({ setIsAuthenticated }) => {
     try {
       await axios.post(`${config.API_URL}/signup`, formData);
       setIsAuthenticated(true);
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       alert(error.response?.data?.message || "Registration failed");
     }

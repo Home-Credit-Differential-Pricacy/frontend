@@ -3,15 +3,17 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const mysql = require('mysql2');
 const axios = require("axios");
+
+
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
-app.use(bodyParser.json());
 app.use(cors({ origin: 'http://localhost:3000' }));
-
+app.use(bodyParser.json({ limit: "100mb" })); // JSON boyut sınırını artırın
+app.use(bodyParser.urlencoded({ limit: "100mb", extended: true })); // URL-encoded veriler için sınır
 // MySQL Connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -94,6 +96,7 @@ app.post("/logout", (req, res) => {
   currentUser = null; // Kullanıcıyı sıfırla
   res.status(200).json({ message: "User logged out successfully!" });
 });
+
 app.post("/save-dashboard-data", (req, res) => {
   const {
     userId,
@@ -110,7 +113,7 @@ app.post("/save-dashboard-data", (req, res) => {
     return res.status(400).json({ message: "User ID is required!" });
   }
 
-  // SQL Sorgusu
+  // SQL Sorgusu (Sadece INSERT)
   const query = `
     INSERT INTO user_dashboard_data (
       user_id,
@@ -123,14 +126,6 @@ app.post("/save-dashboard-data", (req, res) => {
       created_date
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    ON DUPLICATE KEY UPDATE
-      loan_purposes = VALUES(loan_purposes),
-      debt_analysis = VALUES(debt_analysis),
-      credit_history = VALUES(credit_history),
-      credit_balance = VALUES(credit_balance),
-      application_status = VALUES(application_status),
-      education_income = VALUES(education_income),
-      last_updated = CURRENT_TIMESTAMP
   `;
 
   // Veritabanına Kaydet
@@ -154,6 +149,7 @@ app.post("/save-dashboard-data", (req, res) => {
     }
   );
 });
+
 
 
 app.post("/set-privacy-level", (req, res) => {
