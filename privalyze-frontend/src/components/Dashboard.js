@@ -6,7 +6,7 @@ import LoanPurposesTable from "./LoanPurposesTable";
 import CreditHistoryTable from "./CreditHistoryTable";
 import CreditBalanceTable from "./CreditBalanceTable";
 import ApplicationStatusTable from './ApplicationStatusTable';
-import EducationIncomeTable from "./EducationIncomeTable"; // Import the new component
+import EducationIncomeTable from "./EducationIncomeTable";
 
 import {
   Chart as ChartJS,
@@ -30,8 +30,9 @@ const privacyLevels = [
 
 const Dashboard = () => {
   const [privacyLevel, setPrivacyLevel] = useState(0.5);
+  const [privacyBudget, setPrivacyBudget] = useState(5); // Initial privacy budget
   const [message, setMessage] = useState("");
-  const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated for table
+const [loanPurposeTableData, setLoanPurposeTableData] = useState([]); // Updated for table
   const [debtAnalysis, setDebtAnalysis] = useState(null);
   const [creditHistoryData, setCreditHistoryData] = useState(null); // Add state for credit history data
   const [creditBalanceData, setCreditBalanceData] = useState(null);
@@ -41,6 +42,11 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
 
   const fetchData = async () => {
+    if (privacyLevel > privacyBudget) {
+      setError("Privacy cost exceeds remaining budget!");
+      return;
+    }
+
     try {
       setIsLoading(true);
       setMessage("");
@@ -51,7 +57,6 @@ const Dashboard = () => {
         epsilon: privacyLevel,
       });
 
-
       if (loanResponse.data && loanResponse.data.result) {
         setLoanPurposeTableData(loanResponse.data.result);
       }
@@ -60,7 +65,6 @@ const Dashboard = () => {
       const debtResponse = await axios.post(`${config.API_URL}/retrieve-debt-analysis`, {
         epsilon: privacyLevel,
       });
-
 
       if (debtResponse.data && debtResponse.data.data) {
         setDebtAnalysis(debtResponse.data.data);
@@ -87,17 +91,15 @@ const Dashboard = () => {
         setCreditBalanceData(creditBalanceResponse.data);
       }
 
-      // Fetch Application Status with error handling
-      const applicationStatusResponse = await axios.post(
-        `${config.API_URL}/retrieve-application-status`,
-        { epsilon: privacyLevel }
-      );
+      // Fetch Application Status
+      const applicationStatusResponse = await axios.post(`${config.API_URL}/retrieve-application-status`, {
+        epsilon: privacyLevel,
+      });
 
-      
-      if (applicationStatusResponse.data ) {
+      if (applicationStatusResponse.data) {
         setApplicationStatusData(applicationStatusResponse.data);
       } else {
-        console.error("Invalid application status data:", applicationStatusResponse);
+        console.error("Invalid application status data format:", applicationStatusResponse);
         setError("Invalid application status data format received");
       }
 
@@ -110,27 +112,24 @@ const Dashboard = () => {
         setEducationIncomeData(educationIncomeResponse.data);
       }
 
+      // Deduct privacy cost from the budget
+      setPrivacyBudget((prev) => prev - privacyLevel);
       setMessage("Data retrieved successfully!");
     } catch (error) {
-      console.error("Error in fetchData:", error);
-      setError(
-        error.response?.data?.message || 
-        error.message || 
-        "An error occurred while fetching data."
-      );
+      console.error("Error fetching data:", error);
+      setError(error.response?.data?.message || "Error fetching data.");
     } finally {
       setIsLoading(false);
-      setTimeout(() => setMessage(""), 3000);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-base-200 p-8">
       <h1 className="text-4xl font-bold mb-6 text-center">Financial Dashboard</h1>
 
-      {/* Privacy Control Section */}
       <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-        <h2 className="text-lg font-semibold mb-4">Privacy Level Control</h2>
+        <h2 className="text-lg font-semibold mb-4">Privacy Level & Budget</h2>
 
         <div className="grid grid-cols-5 gap-4 mb-4">
           {privacyLevels.map(level => (
@@ -146,37 +145,34 @@ const Dashboard = () => {
           ))}
         </div>
 
-        <div className="text-center mt-2">Selected Epsilon: {privacyLevel}</div>
+        <div className="text-center mt-2">Selected Privacy Cost: {privacyLevel}</div>
+        <div className="text-center mt-2">Remaining Budget: {privacyBudget}</div>
         <div className="flex justify-center mt-4">
           <button
             onClick={fetchData}
             className="btn btn-primary"
-            disabled={isLoading}
+            disabled={isLoading || privacyLevel > privacyBudget}
           >
             {isLoading ? "Fetching Data..." : "Retrieve Data"}
           </button>
         </div>
       </div>
 
-      {/* Message Display */}
       {message && <div className="alert alert-info mb-4">{message}</div>}
       {error && <div className="alert alert-error mb-4">{error}</div>}
-      
+
       {/* Education and Income Analysis Section */}
       {educationIncomeData && (
         <EducationIncomeTable data={educationIncomeData} />
       )}
-
       {/* Credit History Section */}
       {creditHistoryData && creditHistoryData.data && (
         <CreditHistoryTable data={creditHistoryData} />
       )}
-
       {/* Credit Balance Analysis Section */}
       {creditBalanceData && creditBalanceData.data && (
         <CreditBalanceTable data={creditBalanceData} />
       )}
-
       {/* Loan Purposes Section */}
       {loanPurposeTableData.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
@@ -184,7 +180,6 @@ const Dashboard = () => {
           <LoanPurposesTable data={loanPurposeTableData} />
         </div>
       )}
-
       {/* Debt Analysis Section */}
       {debtAnalysis && (
         <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center mb-8">
@@ -194,22 +189,18 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
       {/* Application Status Section */}
       {applicationStatusData && (
         <ApplicationStatusTable data={applicationStatusData} />
       )}
-
       {/* Loading State */}
       {isLoading && (
         <div className="flex justify-center items-center">
           <div className="loading loading-spinner loading-lg"></div>
         </div>
       )}
-
     </div>
   );
 };
 
 export default Dashboard;
-
