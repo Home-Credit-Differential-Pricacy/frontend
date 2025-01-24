@@ -101,7 +101,6 @@ app.post("/update-privacy-budget", (req, res) => {
     res.status(200).json({ message: "Privacy budget updated successfully!" });
 });
 
-// Example for using the updated privacy cost
 app.post("/retrieve-loan-purposes", async (req, res) => {
     const { privacyCost } = req.body;
 
@@ -137,28 +136,85 @@ app.post("/retrieve-loan-purposes", async (req, res) => {
     }
 });
 
-// Add new endpoint for debt ratio analysis
-app.post("/retrieve-debt-analysis", async (req, res) => {
+app.post("/retrieve-credit-history", async (req, res) => {
     const { privacyCost } = req.body;
-    console.log("Request received for debt analysis with privacyCost:", privacyCost);
+    try {
+        const response = await axios.post('http://127.0.0.1:5002/credit-history', {
+            privacyCost: privacyCost,
+            table_name: "bureau"
+        });
+        res.status(200).json({
+            data: response.data,
+            success: true
+        });
+    } catch (error) {
+        console.error("Error retrieving credit history:", error.message);
+        res.status(500).json({
+            message: "Error retrieving credit history!",
+            error: error.message,
+            success: false
+        });
+    }
+});
 
-    if (!privacyCost || privacyCost < 0) {
+app.post("/retrieve-credit-balance", async (req, res) => {
+    const { privacyCost } = req.body;
+    try {
+        const response = await axios.post('http://127.0.0.1:5002/credit-balance-analysis', {
+            privacyCost: privacyCost
+        });
+        res.status(200).json({
+            data: response.data,
+            success: true
+        });
+    } catch (error) {
+        console.error("Error retrieving credit balance analysis:", error.message);
+        res.status(500).json({
+            message: "Error retrieving credit balance analysis!",
+            error: error.message,
+            success: false
+        });
+    }
+});
+
+app.post("/retrieve-application-status", async (req, res) => {
+    const { privacyCost } = req.body;
+    try {
+        const response = await axios.post('http://127.0.0.1:5002/application-status', {
+            privacyCost: privacyCost,
+            table_name: "previous_application"
+        });
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error("Error retrieving application status:", error.message);
+        res.status(500).json({
+            message: "Error retrieving application status!",
+            error: error.message,
+            success: false
+        });
+    }
+});
+
+app.post("/retrieve-education-income-analysis", async (req, res) => {
+    const { privacyCost } = req.body;
+    if (!privacyCost || privacyCost < 0.1 || privacyCost > 1.0) {
         return res.status(400).json({ message: "Invalid privacy level!" });
     }
-
     try {
-        const response = await axios.post('http://127.0.0.1:5002/apply-dp-debtratio', {
+        const response = await axios.post('http://127.0.0.1:5002/education-income-analysis', {
             privacyCost: privacyCost,
             table_name: "application_train"
         });
         res.status(200).json(response.data);
     } catch (error) {
-        console.error("Error retrieving debt analysis:", error.message);
-        res.status(500).json({ message: "Error retrieving debt analysis!" });
+        console.error("Error retrieving education and income analysis:", error.message);
+        res.status(500).json({
+            message: "Error retrieving education and income analysis!",
+            error: error.message,
+            success: false
+        });
     }
 });
-
-// Add other routes as necessary...
 
 app.options('*', cors({ origin: 'http://localhost:3000' })); // Preflight request handling
 
