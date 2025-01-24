@@ -183,7 +183,7 @@ const Dashboard = () => {
       {error && <div className="alert alert-error mb-4">{error}</div>}
       
       {/* Education and Income Analysis Section */}
-      {educationIncomeData && (
+      {educationIncomeData && educationIncomeData.data &&(
         <EducationIncomeTable data={educationIncomeData} />
       )}
 
@@ -208,7 +208,6 @@ const Dashboard = () => {
       {/* Debt Analysis Section */}
       {debtAnalysis && (
         <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center mb-8">
-          <h2 className="text-lg font-semibold mb-4">Debt Analysis</h2>
           <div className="w-full overflow-auto max-h-120">
             <DebtAnalysisTable data={debtAnalysis} />
           </div>

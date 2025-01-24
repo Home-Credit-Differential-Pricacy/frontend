@@ -47,22 +47,22 @@ const PastDashboardList = () => {
       {isLoading && <div className="loading loading-spinner loading-lg text-center"></div>}
       {error && <div className="alert alert-error text-center">{error}</div>}
 
-      <div className="bg-white p-6 rounded-lg shadow-lg">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {dashboardList.length > 0 ? (
-          <ul className="list-disc pl-6">
-            {dashboardList.map((dashboard) => (
-              <li key={dashboard.id} className="mb-4">
-                <button
-                  className="text-primary underline hover:text-blue-600"
-                  onClick={() => navigate(`/past-dashboard/${dashboard.id}`)}
-                >
-                  Dashboard {dashboard.id} - {new Date(dashboard.created_date).toLocaleString()}
-                </button>
-              </li>
-            ))}
-          </ul>
+          dashboardList.map((dashboard) => (
+            <div key={dashboard.id} className="bg-white p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-semibold mb-2">Dashboard {dashboard.id}</h3>
+              <p className="text-gray-500 mb-4">{new Date(dashboard.created_date).toLocaleString()}</p>
+              <button
+                className="btn btn-primary w-full"
+                onClick={() => navigate(`/past-dashboard/${dashboard.id}`)}
+              >
+                View Details
+              </button>
+            </div>
+          ))
         ) : (
-          <div className="text-center text-gray-500">No dashboards available.</div>
+          <div className="text-center text-gray-500 col-span-full">No dashboards available.</div>
         )}
       </div>
     </div>

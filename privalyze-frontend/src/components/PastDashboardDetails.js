@@ -51,51 +51,45 @@ const PastDashboardDetails = () => {
 
       {dashboardData && (
         <>
-          {/* Loan Purposes */}
-          {/* {dashboardData.loan_purposes && (
+          {/* Education Income */}
+          {dashboardData.education_income && (
             <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">Loan Purposes</h3>
-              <LoanPurposesTable data={JSON.parse(dashboardData.loan_purposes)} />
-            </div>
-          )} */}
-
-          {/* Debt Analysis */}
-          {dashboardData.debt_analysis && (
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">Debt Analysis</h3>
-              <DebtAnalysisTable data={JSON.parse(dashboardData.debt_analysis)} />
+              <EducationIncomeTable data={dashboardData.education_income} />
             </div>
           )}
 
           {/* Credit History */}
           {dashboardData.credit_history && (
             <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">Credit History</h3>
-              <CreditHistoryTable data={JSON.parse(dashboardData.credit_history)} />
+              <CreditHistoryTable data={dashboardData.credit_history} />
             </div>
           )}
 
           {/* Credit Balance */}
           {dashboardData.credit_balance && (
             <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">Credit Balance</h3>
-              <CreditBalanceTable data={JSON.parse(dashboardData.credit_balance)} />
+              <CreditBalanceTable data={dashboardData.credit_balance} />
+            </div>
+          )}
+
+          {/* Loan Purposes */}
+          {dashboardData.loan_purposes && (
+            <div className="mb-4">
+              <LoanPurposesTable data={dashboardData.loan_purposes} />
+            </div>
+          )}
+
+          {/* Debt Analysis */}
+          {dashboardData.debt_analysis && (
+            <div className="mb-4">
+              <DebtAnalysisTable data={dashboardData.debt_analysis} />
             </div>
           )}
 
           {/* Application Status */}
           {dashboardData.application_status && (
             <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">Application Status</h3>
-              <ApplicationStatusTable data={JSON.parse(dashboardData.application_status)} />
-            </div>
-          )}
-
-          {/* Education Income */}
-          {dashboardData.education_income && (
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">Education & Income</h3>
-              <EducationIncomeTable data={JSON.parse(dashboardData.education_income)} />
+              <ApplicationStatusTable data={dashboardData.application_status} />
             </div>
           )}
         </>

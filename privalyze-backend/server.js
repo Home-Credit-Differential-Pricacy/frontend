@@ -369,7 +369,11 @@ app.post("/retrieve-education-income-analysis", async (req, res) => {
       epsilon: epsilon,
       table_name: "application_train"
     });
-    res.status(200).json(response.data);
+    // Structure the response properly
+    res.status(200).json({
+      data: response.data,
+      success: true
+    });
   } catch (error) {
     console.error("Error retrieving education and income analysis:", error.message);
     res.status(500).json({ 

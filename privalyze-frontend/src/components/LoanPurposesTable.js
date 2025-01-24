@@ -16,7 +16,7 @@ const LoanPurposesTable = ({ data }) => {
   })) || [];
 
   if (formattedData.length === 0) {
-    return <div className="p-4">No loan purposes data available</div>;
+    return <div className="alert alert-error">No loan purposes data available</div>;
   }
 
   // Sort the data
@@ -78,8 +78,8 @@ const LoanPurposesTable = ({ data }) => {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex justify-between items-center mb-4">
+    <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center mb-8 mt-8">
+      <div className="w-full flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Loan Purpose Distribution</h2>
         <button
           onClick={exportToCSV}
@@ -88,9 +88,9 @@ const LoanPurposesTable = ({ data }) => {
           Export to CSV
         </button>
       </div>
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4 w-full">
         {/* Scrollable Table */}
-        <div className="overflow-x-auto overflow-y-scroll max-h-96 bg-white shadow-lg rounded-lg w-1/2 p-4">
+        <div className="w-full md:w-1/2 overflow-x-auto overflow-y-scroll max-h-96 bg-white shadow-lg rounded-lg p-4">
           <table className="table w-full">
             <thead>
               <tr>
@@ -119,9 +119,8 @@ const LoanPurposesTable = ({ data }) => {
           </table>
         </div>
         {/* Chart */}
-        <div className="w-1/2 p-4">
-          <h2>Loan Purpose Distribution</h2>
-          <Bar data={chartData} />
+        <div className="w-full md:w-1/2 p-4 max-h-96">
+          <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
         </div>
       </div>
     </div>

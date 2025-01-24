@@ -8,7 +8,24 @@ const EducationIncomeTable = ({ data }) => {
     direction: 'ascending',
   });
 
-  const sortedData = [...data.data].sort((a, b) => {
+  console.log("Education Inside");
+  console.log(data);
+
+  let educationData = [];
+
+  if (data && Array.isArray(data.data)) {
+    educationData = data.data;
+  } else if (data && data.data && Array.isArray(data.data.data)) {
+    educationData = data.data.data;
+  } else {
+    educationData = data || [];
+  }
+
+  if (!Array.isArray(educationData) || educationData.length === 0) {
+    return <div className="alert alert-error">No education income data available</div>;
+  }
+
+  const sortedData = [...educationData].sort((a, b) => {
     if (!sortConfig.key) return 0;
 
     const aValue = parseFloat(a[sortConfig.key]) || 0;
