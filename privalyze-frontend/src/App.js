@@ -46,7 +46,7 @@ function App() {
       alt="Privalyze Logo"
       className="h-12 w-12 rounded-full mr-3 shadow-lg hover:scale-110 transition-transform"
     />
-    <Link to="/" className="btn btn-ghost normal-case text-xl">
+    <Link to="/dashboard" className="btn btn-ghost normal-case text-xl">
       Privalyze
     </Link>
   </div>
@@ -66,17 +66,17 @@ function App() {
         </>
       ) : (
         <>
-          <li>
+          {/* <li>
             <Link to="/data-history">{t("data_history")}</Link>
-          </li>
+          </li> */}
           <li>
             <Link to="/dashboard">{t("dashboard")}</Link>
           </li>
           {/* Past Dashboards Link (Başlangıç) */}
           <li>
-                  <Link to="/past-dashboards">{t("Past Dashboards")}</Link>
-                </li>
-                {/* Past Dashboards Link (Bitiş) */}
+            <Link to="/past-dashboards">{t("Past Dashboards")}</Link>
+          </li>
+          {/* Past Dashboards Link (Bitiş) */}
           <li>
             <Link to="/profile">{t("profile")}</Link>
           </li>
@@ -90,16 +90,16 @@ function App() {
           </li>
         </>
       )}
-      <li>
+      {/* <li>
         <button
           onClick={toggleTheme}
           className="btn btn-outline btn-accent"
         >
           {theme === "light" ? t("dark_mode") : t("light_mode")}
         </button>
-      </li>
+      </li> */}
       {/* Language Dropdown */}
-      <li className="dropdown dropdown-hover">
+      {/* <li className="dropdown dropdown-hover">
         <label tabIndex={0} className="btn btn-outline btn-accent">
           {t("language")}
         </label>
@@ -114,7 +114,7 @@ function App() {
             <button onClick={() => changeLanguage("tr")}>Türkçe</button>
           </li>
         </ul>
-      </li>
+      </li> */}
     </ul>
   </div>
 </div>
@@ -131,7 +131,7 @@ function App() {
           element={<SignUp setIsAuthenticated={setIsAuthenticated} />}
         />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route
+        {/* <Route
           path="/data-history"
           element={
             isAuthenticated ? (
@@ -142,7 +142,7 @@ function App() {
               </div>
             )
           }
-        />
+        /> */}
         <Route
           path="/dashboard"
           element={
